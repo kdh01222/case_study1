@@ -1,0 +1,36 @@
+(function (){
+    var $header = $(".l-header.c-header");
+    var bannerKey = "popupBanner";
+    function init(){
+        var currDate = new Date()*1;
+        var saveDate = getLongData(bannerKey);
+        if(saveDate && currDate - saveDate < 24*60*60*1000){
+            // 종료 후 지나지 않았으면
+            $header.removeClass("c-apop-wrap");
+        }else{
+            $header.find(".c-apop").css("visibility", "");
+        }
+
+        bindEvents();
+    }
+
+    function bindEvents(){
+        $header.find(".c-apop__close").on("click", function (){
+            putLongData(bannerKey, new Date()*1);
+        });
+    }
+
+    function putLongData(key, value){
+        value = parseFloat(value);
+        console.log("putLongData: key = " + key + ", value = " + value);
+        localStorage.setItem(key, value);
+    }
+
+    function getLongData(key){
+        return localStorage.getItem(key)
+    }
+
+
+
+    $(window).on("load", init);
+})();

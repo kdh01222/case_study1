@@ -1,0 +1,292 @@
+!function (e, t) {
+  "function" == typeof define && define.amd ? define(t) : "object" == typeof exports ? module.exports = t() : e.WowScroller = t();
+}(this, function () {
+  var e = function () {};
+
+  e.version = "1.0.0", window.addEventListener("mousewheel", function () {});
+  return e.Manager = function (e) {
+    GET_SCROLL = function () {
+      return window.pageYOffset || s.scrollTop || n.scrollTop;
+    };
+
+    var t = this,
+        r = window,
+        o = document,
+        s = o.documentElement,
+        n = o.body,
+        i = n.scrollHeight,
+        a = (o.querySelector(".wow-scroller"), {
+      width: r.innerWidth,
+      height: r.innerHeight
+    }),
+        c = [],
+        g = 0,
+        u = 0,
+        d = 0,
+        h = e.globalDamper || .2,
+        l = "up",
+        f = function () {},
+        p = function (e) {
+      var r = {
+        id: "false",
+        type: e.type || "normal",
+        debug: !1,
+        target: null,
+        trigger: null,
+        rect: null,
+        screenAnchor: .5,
+        triggerAnchor: .5,
+        triggerWidth: 0,
+        triggerHeight: 0,
+        offsetTop: 0,
+        offsetBottom: 0,
+        calcedOffsetTop: 0,
+        calcedOffsetBottom: 0,
+        start: {
+          anchor: null,
+          rh: 0,
+          vh: 0,
+          px: 0
+        },
+        end: {
+          anchor: null,
+          rh: 0,
+          vh: 0,
+          px: 0
+        },
+        startPos: 0,
+        endPos: 0,
+        screenAnchorOffset: 0,
+        damper: e.damper || h,
+        duration: 0,
+        preProgress: -1,
+        progress: 0,
+        realProgress: 0,
+        dampedProgress: 0,
+        isEndDamping: !0,
+        isEnter: !1,
+        hasViewportAction: !1,
+        isInViewport: !1,
+        state: "start",
+        recalculation: function () {
+          this.realProgress = this.dampedProgress = (g - this.startPos) / this.duration, this.progress = t.range(this.realProgress, 0, 1), this.progress > 0 && this.progress < 1 && (this.isEnter = !0);
+        },
+        beforeUpdate: function () {},
+        resize: f,
+        enter: f,
+        enterFromTop: f,
+        enterFromBottom: f,
+        step: f,
+        out: f,
+        outToTop: f,
+        outToBottom: f,
+        outViewToTop: null,
+        outViewToBottom: null,
+        debugger: f
+      },
+          o = $.extend(!0, r, e);
+      return o.trigger = o.trigger ? o.trigger : o.target, o.triggerWidth = o.trigger.width(), o.triggerHeight = o.trigger.height(), o.hasViewportAction = null != o.outViewToTop || null != o.outViewToBottom, o.debug && (o.debugger = new function () {
+        0 == $(".ws-debug").length && $("body").append($('<div class="ws-debug" style="position: fixed; top: 10px; right: 10px; width: 7%; max-width: 100px; z-index: 9999;"></div>')), this.dom = $('<div class="ws-debug__itm" style="color: #fff; position: relative; padding-top: 100%; background-color: rgba(125, 125, 125, 0.9); overflow: hidden; border-radius: 4px; margin-bottom: 5px;"><div class="ws-debug__itm-bg" style="position: absolute; left: 0; right: 0; top: 0; height: 0; background-color: rgba(0, 0, 0, 0.4);"></div><div class="ws-debug__itm-id" style="position: absolute; left: 5px; top: 5px; font-size: 11px; white-space: nowrap;">' + o.id + '</div><div class="ws-debug__itm-txt" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);"><span class="ws-debug__itm-digit">0</span>%</div></div>'), $(".ws-debug").append(this.dom);
+      }()), o;
+    };
+
+    return this.ease = function (e, t) {
+      switch (e) {
+        case "linear":
+          return t;
+
+        case "easeInQuad":
+          return t * t;
+
+        case "easeOutQuad":
+          return t * (2 - t);
+
+        case "easeInOutQuad":
+          return t < .5 ? 2 * t * t : (4 - 2 * t) * t - 1;
+
+        case "easeInCubic":
+          return t * t * t;
+
+        case "easeOutCubic":
+          return --t * t * t + 1;
+
+        case "easeInOutCubic":
+          return t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+
+        case "easeInQuart":
+          return t * t * t * t;
+
+        case "easeOutQuart":
+          return 1 - --t * t * t * t;
+
+        case "easeInOutQuart":
+          return t < .5 ? 8 * t * t * t * t : 1 - 8 * --t * t * t * t;
+
+        case "easeInQuint":
+          return t * t * t * t * t;
+
+        case "easeOutQuint":
+          return 1 + --t * t * t * t * t;
+
+        case "easeInOutQuint":
+          return t < .5 ? 16 * t * t * t * t * t : 1 + 16 * --t * t * t * t * t;
+      }
+    }, this.range = function (e, t, r, o) {
+      var s = e < t ? 0 : e > r ? 1 : (e - t) / (r - t);
+      return 3 == arguments.length ? s : 4 == arguments.length ? o(s) : void 0;
+    }, this.range2 = function (e, t, r, o) {
+      console.log("preProgress - ", e.preProgress), console.log("Progress - ", e.progress);
+      var s = e.progress,
+          n = e.preProgress,
+          i = s < t ? 0 : s > r ? 1 : (s - t) / (r - t),
+          a = n < t ? 0 : n > r ? 1 : (n - t) / (r - t);
+      return 3 == arguments.length ? i : 4 == arguments.length ? (console.log("p - ", i), console.log("preP - ", a), o(i)) : void 0;
+    }, this.transform = function (e, t) {
+      var r = "";
+      t.forEach(function (e) {
+        var t = !1,
+            o = !1,
+            s = !1;
+
+        for (var n in e) switch (n) {
+          case "tx":
+          case "ty":
+          case "tz":
+            e[n] = "number" == typeof e[n] ? e[n] + "px" : e[n], t = !0;
+            break;
+
+          case "sx":
+          case "sy":
+          case "sz":
+            o = !0;
+            break;
+
+          case "rz":
+            s = !0;
+        }
+
+        t ? r += " translate3d(" + (null != e.tx ? e.tx : 0) + ", " + (null != e.ty ? e.ty : 0) + ", " + (null != e.tz ? e.tz : 0) + ")" : o ? r += " scale3d(" + (null != e.sx ? e.sx : 1) + ", " + (null != e.sy ? e.sy : 1) + ", " + (null != e.sz ? e.sz : 1) + ")" : s && (r += " rotate3d(0, 0, 1, " + e.rz + "deg)");
+      }), $(e).css("transform", r);
+    }, this.getScrollDir = function () {
+      return l;
+    }, this.update = function () {
+      g = GET_SCROLL(), d = g + a.height, l = g - u < 0 ? "up" : "down", i != n.scrollHeight && (i = n.scrollHeight, c.forEach(function (e) {
+        e.resize();
+      }), t.recalculation()), c.forEach(function (e) {
+        if (function (e) {
+          e.realProgress = (g - e.startPos) / e.duration, 1 !== e.damper ? e.dampedProgress !== e.realProgress ? (e.dampedProgress = (r = e.dampedProgress, o = e.realProgress, s = e.damper, r + (o - r) * (s = (s = s < 0 ? 0 : s) > 1 ? 1 : s)), Math.abs(e.realProgress - e.dampedProgress) < .001 && (e.dampedProgress = e.realProgress, e.isEndDamping = !0), "sticky" == e.type && $("html").hasClass("ie") && (e.dampedProgress = e.realProgress), e.progress = e.dampedProgress) : e.isEndDamping = !1 : e.progress = e.realProgress;
+          var r, o, s;
+          e.progress = t.range(e.progress, 0, 1);
+        }(e), e.preProgress != e.progress) {
+          if (e.progress >= 0 && e.progress <= 1 && !e.isEnter && function (e) {
+            e.isEnter || (e.enter(), e.preProgress - e.progress > 0 ? e.enterFromBottom() : e.enterFromTop(), e.isEnter = !0);
+          }(e), e.progress >= 0 && e.progress <= 1 && (e.step(), e.debug)) {
+            var r = Math.round(100 * e.progress);
+            e.debugger.dom.find(".ws-debug__itm-digit").text(r), e.debugger.dom.find(".ws-debug__itm-bg").css("height", r + "%");
+          }
+
+          (e.progress <= 0 || e.progress >= 1) && e.isEnter && function (e) {
+            e.isEnter && (e.out(), e.preProgress - e.progress > 0 ? e.outToTop() : e.outToBottom(), e.isEnter = !1);
+          }(e), e.hasViewportAction && (e.isInViewport ? e.outViewToTop && g > e.rect.bottom ? e.isInViewport = !1 : e.outViewToBottom && g + $(window).height() < e.rect.top && (e.isInViewport = !1) : d > e.startViewPos && d < e.endViewPos && (e.isInViewport = !0)), e.preProgress = e.progress;
+        }
+      }), u = g;
+    }, this.recalculation = function (e) {
+      a = {
+        width: r.innerWidth,
+        height: r.innerHeight
+      };
+      var o = [];
+      void 0 !== e ? o.push(e) : o = c, o.forEach(function (e) {
+        if (e.rect = e.trigger[0].getBoundingClientRect(), e.screenAnchorOffset = e.screenAnchor * a.height, e.triggerAnchorOffset = e.triggerAnchor * e.triggerHeight, "object" == typeof e.offsetTop ? e.calcedOffsetTop = e.offsetTop.target.height() * e.offsetTop.anchor : e.calcedOffsetTop = e.offsetTop, "object" == typeof e.offsetBottom ? e.calcedOffsetBottom = e.offsetBottom.target.height() * e.offsetBottom.anchor : e.calcedOffsetBottom = e.offsetBottom, e.startPos = e.rect.top - e.screenAnchorOffset + e.calcedOffsetTop + GET_SCROLL(), e.endPos = e.rect.bottom - e.screenAnchorOffset + e.calcedOffsetBottom + GET_SCROLL(), e.start.anchor) {
+          var r = e.start.anchor[0].getBoundingClientRect().top + GET_SCROLL(),
+              o = e.start.rh && e.start.rh / 100 * e.start.anchor.outerHeight(),
+              s = e.start.vh && -e.start.vh / 100 * a.height;
+
+          if (e.startPos = r + o + s + e.start.px, e.end.anchor) {
+            r = e.end.anchor[0].getBoundingClientRect().top + GET_SCROLL(), o = e.end.rh && e.end.rh / 100 * e.end.anchor.outerHeight(), s = e.end.vh && -e.end.vh / 100 * a.height;
+            e.endPos = r + o + s + e.end.px;
+
+            try {
+              if (e.startPos >= e.endPos) throw {
+                name: "",
+                message: "Error -> required (EndPoint > StartPoint)"
+              };
+            } catch (e) {
+              console.log(e.message);
+            }
+          }
+        }
+
+        e.startViewPos = e.rect.top + GET_SCROLL(), e.endViewPos = e.rect.bottom + GET_SCROLL() + a.height, e.duration = e.endPos - e.startPos, e.progress = e.realProgress = t.range(e.dampedProgress = (g - e.startPos) / e.duration, 0, 1), 0 == e.progress ? e.preProgress = 1e-5 : 1 == e.progress && (e.preProgress = -1e-5);
+      });
+    }, this.add = function (e) {
+      var r = new p(e);
+      return c.push(r), t.recalculation(r), r;
+    }, this.getRootScroll = function () {
+      return rootScroll;
+    }, this.getDocScroll = function () {
+      return g;
+    }, window.addEventListener("resize", function () {
+      c.forEach(function (e) {
+        e.resize();
+      });
+    }, !1), window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.msRequestAnimationFrame || function (e) {
+      return setTimeout(e, 1e3 / 60);
+    }, function e() {
+      t.update(), window.requestAnimationFrame(e);
+    }(), t;
+  }, e;
+});
+
+var CreateSequence = function (e) {
+  var t = e.target,
+      r = e.target[0].getContext("2d"),
+      o = e.cw || e.target.attr("width"),
+      s = e.ch || e.target.attr("height"),
+      n = e.extension || "jpg",
+      i = e.path,
+      a = 0,
+      c = -1,
+      g = e.frameCount,
+      u = -1,
+      d = [],
+      h = function (e, t) {
+    var r = this,
+        o = new Image();
+    o.src = i + e + "." + n, o.onload = function () {
+      r.isLoaded = !0, t.drawFromChild(e);
+    }, this.img = o, this.isLoaded = !1;
+  };
+
+  this.loadFrame = function (e) {
+    null == d[e] && (d[e] = new h(e, this));
+  }, this.draw = function (e) {
+    var t;
+    if ((t = function (e) {
+      if (u == e) return !1;
+      var t = Math.floor(e * (g - 1));
+      if (a == t) return !1;
+      a = t;
+      var r = -1;
+      return d.filter(function (e, t) {
+        t <= a && e.isLoaded && (r = t);
+      }), c != r && (c = r, !0);
+    }(e)) && (r.clearRect(0, 0, o, s), r.drawImage(d[c].img, (o - d[c].img.width) / 2, (s - d[c].img.height) / 2, d[c].img.width, d[c].img.height)), u = e, t) return c;
+  }, this.drawFromChild = function (e) {
+    a != e && 0 != e || (c = e, r.clearRect(0, 0, o, s), r.drawImage(d[c].img, (o - d[c].img.width) / 2, (s - d[c].img.height) / 2, d[c].img.width, d[c].img.height)), t == $(".health_canvas") && (71 == c ? $(".m_feature-health .canvas_area").css("background-color", "#ccc") : 72 == c ? $(".m_feature-health .canvas_area").css("background-color", "#989898") : 73 == c ? $(".m_feature-health .canvas_area").css("background-color", "#666") : 74 == c ? $(".m_feature-health .canvas_area").css("background-color", "#343434") : c > 74 ? $(".m_feature-health .canvas_area").css("background-color", "#000") : $(".m_feature-health .canvas_area").css("background-color", "#fff"));
+  }, this.frameCount = g, this.loadCount = [], this.frames = d;
+},
+    SeqLoader = function () {
+  var e = function (e) {
+    e.loadCount.reduce(function (t, r) {
+      var o = Math.floor((t + r) / 2);
+      return e.loadCount[o] = o, e.loadFrame(o), r;
+    });
+  };
+
+  this.add = function (t) {
+    t.forEach(function (t, r) {
+      t.loadCount[0] = 0, t.loadFrame(0), t.loadCount[t.frameCount - 1] = t.frameCount - 1, t.loadFrame(t.loadCount[t.frameCount - 1]), e(t), e(t), e(t), e(t), e(t), e(t), e(t), e(t), e(t);
+    });
+  };
+};

@@ -1,0 +1,337 @@
+/**
+ * Created by gnustory on 17. 2. 16..
+ */
+var NetworkManager = (function (){
+    var TAG = "[NetworkManager] ";
+    function generateGetParams(params){
+        var str = "?";
+        for(var k in params) str += k + "=" + encodeURIComponent(params[k]) + "&";
+        str = str.substr(0, str.length-1);
+        return str;
+    }
+
+    function generatePostParams(params){
+        var str = "";
+        for(var k in params) str += k + "=" + encodeURIComponent(params[k]) + "&";
+        str = str.substr(0, str.length-1);
+        return str;
+    }
+
+    function get(url, params, success, error){
+        params["preventCache"] = new Date()*1;
+        url += generateGetParams(params);
+        console.log(TAG+"get call url = " + url);
+        $.ajax({
+            type:"GET",
+            url: url,
+            beforeSend: function (request){
+                var token = $("meta[name='_csrf']").attr("content");
+                var header = $("meta[name='_csrf_header']").attr("content");
+                request.setRequestHeader(header, token);
+            },
+            success: function(res, status, xhr) {
+                console.log(TAG+"get success url = " + url);
+                console.log(JSON.stringify(res));
+                console.log(status);
+                console.log(xhr);
+                success(res, status, xhr);
+            },
+            error:function(request,status,err){
+                console.log(TAG+"get error url = " + url);
+                console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+err);
+                error(request,status,err);
+            }
+
+        });
+    }
+
+    function post(url, params, success, error, typeObject){
+        console.log(TAG+"post call url = " + url);
+        var data = null;
+        if(typeObject) data = params;
+        else data = generatePostParams(params);
+
+        $.ajax({
+            type:"POST",
+            url: url,
+            data: data,
+            success: function(res, status, xhr) {
+                console.log(TAG+"post success url = " + url);
+                console.log(JSON.stringify(res));
+                console.log(status);
+                console.log(xhr);
+                success(res, status, xhr);
+            },
+            error:function(request,status,err){
+                console.log(TAG+"post error url = " + url);
+                console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+err);
+                error(request,status,err);
+            }
+
+        });
+    }
+    
+    
+    function put(url, params, success, error, typeObject){
+        console.log(TAG+"put call url = " + url);
+        var data = null;
+        if(typeObject) data = params;
+        else data = generatePostParams(params);
+
+        $.ajax({
+            type:"PUT",
+            url: url,
+            data: data,
+            success: function(res, status, xhr) {
+                console.log(TAG+"put success url = " + url);
+                console.log(JSON.stringify(res));
+                console.log(status);
+                console.log(xhr);
+                success(res, status, xhr);
+            },
+            error:function(request,status,err){
+                console.log(TAG+"put error url = " + url);
+                console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+err);
+                error(request,status,err);
+            }
+
+        });
+    }
+    
+    function del(url, data, success, error, progress){
+        console.log(TAG+"multipart del call url = " + url);
+        $.ajax({
+            type: "DELETE",
+            enctype: 'multipart/form-data',
+            url: url,
+            data: data,
+            processData: false,
+            contentType: false,
+            cache: false,
+            success: function(res, status, xhr) {
+                console.log(TAG+"multipart del success url = " + url);
+                console.log(JSON.stringify(res));
+                console.log(status);
+                console.log(xhr);
+                success(res, status, xhr);
+            },
+            error:function(request,status,err){
+                console.log(TAG+"multipart del error url = " + url);
+                console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+err);
+                error(request,status,err);
+            },
+            xhr: function() {
+                var myXhr = $.ajaxSettings.xhr();
+                if(progress){
+                    if(myXhr.upload){
+                        myXhr.upload.addEventListener('progress',progress, false);
+                    }
+                }
+                return myXhr;
+            }
+        });
+    }
+
+    function multipart(url, data, success, error, progress){
+        console.log(TAG+"multipart call url = " + url);
+        $.ajax({
+            type: "POST",
+            enctype: 'multipart/form-data',
+            url: url,
+            data: data,
+            processData: false,
+            contentType: false,
+            cache: false,
+            success: function(res, status, xhr) {
+                console.log(TAG+"multipart success url = " + url);
+                console.log(JSON.stringify(res));
+                console.log(status);
+                console.log(xhr);
+                success(res, status, xhr);
+            },
+            error:function(request,status,err){
+                console.log(TAG+"multipart error url = " + url);
+                console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+err);
+                error(request,status,err);
+            },
+            xhr: function() {
+                var myXhr = $.ajaxSettings.xhr();
+                if(progress){
+                    if(myXhr.upload){
+                        myXhr.upload.addEventListener('progress',progress, false);
+                    }
+                }
+                return myXhr;
+            }
+        });
+    }
+
+    function downloadExcel(uri, params){
+        var inputs = getInputs(params);
+        $("<form action='"+ uri +"' method='get'>"+inputs+"</form>").appendTo('body').submit().remove();
+    }
+
+    function getCode(success, error){
+        getOrgList(success, error);
+    }
+
+    function getOrgList(success, error){
+        get(URI.ORG, {},
+            function (res, status, xhr){
+                //success
+                var orgList = res["list"];
+                var newOrgList = [];
+                if(orgList){
+                    var i, len = orgList.length;
+                    for(i = 0; i < len; i++){
+                        var data = orgList[i];
+                        newOrgList[i] = {"commCd":data["orgNo"], "commNm":data["orgNm"]};
+                    }
+                }
+
+                getCodeList(newOrgList, success, error);
+            },
+            function (request,status,err){
+                //error
+
+            }
+        );
+    }
+
+    function getCodeList(orgList, success, error){
+        get(URI.CODE, {},
+            function (res, status, xhr){
+                //success
+                var codeList = res["list"];
+                if(!codeList) codeList = {};
+                codeList["CONFIRM"] = [
+                    {"commCd":"Y", "commNm":"승인"}
+                    ,{"commCd":"N", "commNm":"대기"}
+                ];
+                codeList["PASS"] = [
+                   {"commCd":"Y", "commNm":"합격"}
+                   ,{"commCd":"N", "commNm":"불합격"}
+                ];
+                codeList["PASS2"] = [
+                    {"commCd":"Y", "commNm":"수료"}
+                    ,{"commCd":"N", "commNm":"미수료"}
+                ];
+                codeList["JOIN"] = [
+                    {"commCd":"N", "commNm":"참여"}
+                    ,{"commCd":"Y", "commNm":"미참여"}
+                ];
+                codeList["OPEN"] = [
+                    {"commCd":"Y", "commNm":"활성화"}
+                    ,{"commCd":"N", "commNm":"비활성화"}
+                ];
+                codeList["SEARCH_OPTION1"] = [
+                    {"commCd":"1", "commNm":"이름"}
+                    ,{"commCd":"2", "commNm":"아이디"}
+                    ,{"commCd":"3", "commNm":"휴대폰"}
+                    ,{"commCd":"4", "commNm":"이메일"}
+                ];
+                codeList["SEARCH_OPTION2"] = [
+                    {"commCd":"searchItem", "commNm":"품명"}
+                    ,{"commCd":"searchMaker", "commNm":"제조사"}
+                    ,{"commCd":"searchModelNm", "commNm":"모델명"}
+                ];
+                codeList["SEX"] = [
+                    {"commCd":"M", "commNm":"남"}
+                    ,{"commCd":"F", "commNm":"여"}
+                ];
+                codeList["PROCESS"] = [
+                    {"commCd":"1", "commNm":"접수"}
+                    ,{"commCd":"2", "commNm":"승인"}
+                    ,{"commCd":"3", "commNm":"반려"}
+                ];
+                codeList["STATUS"] = [
+                    {"commCd":"1", "commNm":"제출"}
+                    ,{"commCd":"2", "commNm":"재검토"}
+                    ,{"commCd":"3", "commNm":"완료"}
+                ];
+                codeList["DRUG_CLASS"] = [
+                    {"commCd":"1", "commNm":"KI"}
+                    ,{"commCd":"2", "commNm":"Ca-DTPA"}
+                    ,{"commCd":"3", "commNm":"Zn-DTPA"}
+                    ,{"commCd":"4", "commNm":"Pu-BLUE"}
+                ];
+                codeList["CONVERSATION_UNIT"] = [
+                    {"commCd":"1", "commNm":"해당 없음"}
+                    ,{"commCd":"2", "commNm":"갑/앰플(1 → 5)"}
+                    ,{"commCd":"3", "commNm":"병/캡슐(1 → 30)"}
+                    ,{"commCd":"4", "commNm":"병/캡슐(1 → 36)"}
+
+                ];
+                codeList["MEDICINE_CHECK_FLAG"] = [
+                    {"commCd":"1", "commNm":"O"}
+                    ,{"commCd":"2", "commNm":"△"}
+                    ,{"commCd":"3", "commNm":"X"}
+                ];
+                codeList["A100_MENU"] = [
+                    {"commCd":"A101", "commNm":"자원관리"}
+                    ,{"commCd":"A102", "commNm":"비상교육"}
+                    ,{"commCd":"A103", "commNm":"초동교육"}
+                    ,{"commCd":"A104", "commNm":"방호약품"}
+                    ,{"commCd":"A105", "commNm":"방재훈련"}
+                    ,{"commCd":"A106", "commNm":"검교정"}
+                ];
+                codeList["A100_MENU2"] = [
+                    {"commCd":"A101", "commNm":"자원"}
+                    ,{"commCd":"A102", "commNm":"교육"}//비상교육... 실무자는 초동이 없음.
+                    ,{"commCd":"A104", "commNm":"방호약품"}
+                    ,{"commCd":"A105", "commNm":"훈련"}
+                    ,{"commCd":"A106", "commNm":"검교정"}
+                ];
+
+                var y, cy = new Date().getFullYear();
+                codeList["YEAR"] = [];
+                for(y = cy; y >= 2005; y--){
+                    codeList["YEAR"].push({
+                        "commCd":y, "commNm":y
+                    });
+                }
+
+                var occList = codeList["B400"];
+                if(occList){
+                    var i, occLen = occList.length;
+
+                    for(i = 0; i < occLen; i++){
+                        var occObj = occList[i];
+                        var parentCd = occObj["parentCd"];
+                        var occDetailList = codeList["OCC_DETAIL_"+parentCd];
+                        if(!occDetailList){
+                            occDetailList = codeList["OCC_DETAIL_"+parentCd] = [];
+                        }
+                        occDetailList.push(occObj);
+                    }
+                }
+
+                codeList["OD_B301"] = [
+                    {commCd: "B401", commNm: "응급의학과", grpCd: "B400", parentCd: "B301"}
+                    ,{commCd: "B402", commNm: "핵의학과", grpCd: "B400", parentCd: "B301"}
+                    ,{commCd: "B403", commNm: "방사선종양학과", grpCd: "B400", parentCd: "B301"}
+                    ,{commCd: "B404", commNm: "내과", grpCd: "B400", parentCd: "B301"}
+                    ,{commCd: "B405", commNm: "피부과", grpCd: "B400", parentCd: "B301"}
+                    ,{commCd: "B406", commNm: "의사 기타", grpCd: "B400", parentCd: "B301"}
+
+                ];
+                codeList["ORG"] = orgList;
+                success(codeList, status, xhr);
+            },
+            function (request,status,err){
+                //error
+                error(request,status,err);
+            }
+        );
+    }
+
+    return {
+        get:get
+        ,post:post
+        ,put:put
+        ,downloadExcel:downloadExcel
+        ,multipart:multipart
+        ,del:del
+        ,getCode:getCode
+    }
+})();

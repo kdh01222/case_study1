@@ -1,0 +1,106 @@
+var commonSearch01 = (function () {	  
+	
+	function init() {
+		console.log('start commonSearch01 init()');		
+		bindEvents();
+
+		var $contentSearchText = $(".contentSearchText");
+		if($contentSearchText.length && $contentSearchText.val()){
+			$(".searchText").val($contentSearchText.val());
+		}
+
+	}
+			
+	function goProductList() {
+		var $searchLang = $('#searchLang').val();
+		
+		document.location.href = '/'+ $searchLang + '/search?searchText=' + encodeURIComponent($(".searchText").val());
+	}
+	
+	function bindEvents(){					
+		 console.log("start header bindEvents()");
+		$(".searchBtn").on("click", function (){							
+			goProductList();
+		});	
+		
+		// 엔터키 이벤트
+		
+		$(".searchText").on("keyup", function(e) {
+			if(e.keyCode == 13) {
+				goProductList();	
+			}
+		});
+		
+		$(".popDetailBtn").on("click", function (){
+			console.log(1);
+			
+			goPop01($(this));
+			/*var $self = $(this);
+			
+			
+			*/
+		});
+		
+	}
+	
+	
+	// 상단 띠배너
+	function goPop01($btnSelf) {
+		console.log('start goPop01');
+		
+		var $btn = $btnSelf;
+		var popNo = $btn.attr("data-pop-no");
+		var linkYn = $btn.attr("data-link-yn");
+		var targetYn = $btn.attr("data-target-yn");
+		var url = $btn.attr("data-url");
+		
+		console.log('popNo : ' + popNo);
+		console.log('linkYn : ' + linkYn);
+		console.log('targetYn : ' + targetYn);
+		console.log('url : ' + url);
+		
+		/*
+		deviceCd = "J001";
+		if (lastDevice == "Mobile") {
+			deviceCd = "J002";
+		}
+		var params = {langCd:$lang, deviceCd:deviceCd, popNo:popNo};
+		*/
+		var params = {popNo:popNo};
+						
+		$.ajax({
+            type:"POST",
+            url: '/api/pop03',
+            contentType: "application/json",
+            data: JSON.stringify(params),
+            success: function(res, status, xhr) {
+                goTargetUrl();
+            },
+            error:function(request,status,err){
+                console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+err);
+                goTargetUrl();
+            }
+        });
+				
+		function goTargetUrl() {			
+			if (linkYn == 'Y') {
+				if (targetYn == 'Y') {
+					// $btn.attr('target', '_blank');
+					window.open(url, '_blank');
+				} else {
+					document.location.href = url;
+				}
+				
+			}
+		}
+		
+	}
+	
+	
+	
+	
+	
+	init();
+});
+
+commonSearch01();

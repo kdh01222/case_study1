@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+    <defs>
+        <filter id="twul1fm2ia">
+            <feColorMatrix in="SourceGraphic" values="0 0 0 0 1.000000 0 0 0 0 0.980392 0 0 0 0 0.964706 0 0 0 1.000000 0"/>
+        </filter>
+    </defs>
+    <g fill="none" fill-rule="evenodd" filter="url(#twul1fm2ia)" transform="translate(-140 -61)">
+        <path stroke="#1F4095" d="M25 16.667L25 63.333 61.667 40z" transform="translate(140 61)"/>
+    </g>
+</svg>

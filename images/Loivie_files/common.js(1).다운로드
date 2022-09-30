@@ -1,0 +1,361 @@
+jQuery.fn.center = function () {
+    this.css("position","absolute");
+    this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight()) / 2) + $(window).scrollTop()) + "px");
+    this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) + $(window).scrollLeft()) + "px");
+    return this;
+};
+
+
+
+var common01 = (function (){
+	var aws = {
+		albumBucketName: ''
+		,bucketRegion: ''// TODO ap-northeast-1
+		,IdentityPoolId: ''// TODO https://docs.aws.amazon.com/ko_kr/cognito/latest/developerguide/getting-started-with-identity-pools.html
+		,s3Domain: ''
+		,folder:{
+			notice:""
+			,content:""
+		}
+	};
+
+	function setText(targetObj, data, dataField, defaultVal) {   	
+    	var tempValue = defaultVal;
+    	if (data && data[dataField]) {
+    		tempValue = data[dataField];
+    	}    	
+    	targetObj.text(tempValue);    	
+	}
+	
+	function setHtml(targetObj, data, dataField, defaultVal) {   	
+    	var tempValue = defaultVal;
+    	if (data && data[dataField]) {
+    		tempValue = data[dataField];
+    	}    	
+    	targetObj.html(tempValue);    	
+	}
+	
+	function setVal(targetObj, data, dataField, defaultVal) {   	
+    	var tempValue = defaultVal;
+    	if (data && data[dataField]) {
+    		tempValue = data[dataField];
+    	}    	
+    	targetObj.val(tempValue);    	
+    	console.log(tempValue);
+	}
+	
+	function setNumber(targetObj, data, dataField, defaultVal) {   	
+		var tempValue = defaultVal;
+    	if (data && data[dataField]) {
+    		tempValue = data[dataField];
+    	}
+    	tempValue = numberFormat(tempValue);
+    	targetObj.text(tempValue);
+	}
+		
+	
+	function numberFormat(inputNumber) {
+		var isNumber = $.isNumeric(inputNumber )
+		if (isNumber) {
+			return inputNumber.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+		} else {
+			return inputNumber;
+		}
+	    
+	}
+	
+	function setDate(targetObj, data, dataField, defaultVal) {   	
+    	var tempValue = defaultVal;
+    	if (data && data[dataField]) {
+    		tempValue = data[dataField];
+    		tempValue = moment(tempValue).format("YYYY.MM.DD");
+    	}
+    	
+    	targetObj.text(tempValue);
+	}
+	
+	function setDate2(targetObj, data, dataField, defaultVal) {   	
+    	var tempValue = defaultVal;
+    	if (data && data[dataField]) {
+    		tempValue = data[dataField];
+    		tempValue = moment(tempValue).format("YYYY.MM.DD HH:mm");
+    	}
+    	
+    	targetObj.text(tempValue);
+	}
+	
+	function getDateFormat(data, dataField, defaultVal) {   	
+    	var tempValue = defaultVal;
+    	if (data && data[dataField]) {
+    		tempValue = data[dataField];
+    		tempValue = moment(tempValue).format("YYYY.MM.DD");
+    	}
+    	return tempValue;
+	}
+	
+	function getTimeFormat(data, dataField, defaultVal) {   	
+    	var tempValue = defaultVal;
+    	try {
+    		if (data && data[dataField]) {
+        		tempValue = data[dataField];
+        		console.log('------------- ' + tempValue)
+        		tempValue = tempValue.substr(0, 2) + ":" + tempValue.substr(2, 2)
+        	}
+    	} catch (e) {
+    		console.log('common01.getTimeFormat ' + e);
+    	} 
+    	
+    	return tempValue;
+	}
+	
+		
+	function makeSelectBox(list, selectObj, selectedVal, nameKey, valueKey) {
+		console.log('start makeSel ');
+    	
+    	selectObj.find(".code_option").remove();
+         var i, len;
+         if(list){
+             len = list.length;                 
+             for(i = 0; i < len; i++){
+                 var obj = list[i];
+                 var tempCommNm = obj[nameKey];                     
+                 var tempCommVal = obj[valueKey];
+                 
+                 var selected = "";
+                 if (tempCommVal == selectedVal) {
+                	 selected = "selected";
+                 }
+                                  
+                 selectObj.append('<option class="code_option" value="' +tempCommVal+'"' + selected + '>'+tempCommNm+'</option>');                     
+             }
+         }
+	}
+		
+	function isNumber(targetVal) {
+		var num_check_pattern = /[^0-9]/gi;
+		var result = false;
+		if(!num_check_pattern.test(targetVal) ){
+			result = true;
+		}
+		return result;
+		
+	}
+	
+	// 이메일 체크 정규식
+	function isEmail(asValue) {
+		var regExp = /^[0-9a-zA-Z]([-_\.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_\.]?[0-9a-zA-Z])*\.[a-zA-Z]{2,3}$/i;
+		return regExp.test(asValue); // 형식에 맞는 경우 true 리턴	
+	}
+
+	// 핸드폰 번호 체크 정규식
+	function isMobilePhone(asValue) {
+		var regExp = /^01(?:0|1|[6-9])-(?:\d{3}|\d{4})-\d{4}$/;
+		return regExp.test(asValue); // 형식에 맞는 경우 true 리턴
+
+	}
+
+
+	// 비밀번호 체크 정규식
+	function isPassword(asValue) {
+
+		var regExp = /^(?=.*\d)(?=.*[a-zA-Z])[0-9a-zA-Z]{8,10}$/; //  8 ~ 10자 영문, 숫자 조합
+		return regExp.test(asValue); // 형식에 맞는 경우 true 리턴
+	}
+	
+	function makeCode01(list, selectObj, selectedVal){
+    	console.log('makeCode01 : ' + JSON.stringify(list));
+    	console.log('selectedVal : ' + selectedVal);
+    	
+    	selectObj.find(".code_option").remove();
+         var i, len;
+         if(list){
+             len = list.length;                 
+             for(i = 0; i < len; i++){
+                 var obj = list[i];
+                 var tempCommNm = obj['codeNm'];                     
+                 var tempCommVal = obj["code"];
+                 
+                 var selected = "";
+                 if (tempCommVal == selectedVal) {
+                	 selected = "selected";
+                 }
+                 
+                 
+                 selectObj.append('<option class="code_option" value="' +tempCommVal+'"' + selected + '>'+tempCommNm+'</option>');                     
+             }
+         }
+    }
+
+	function getUUID() { // UUID v4 generator in JavaScript (RFC4122 compliant)
+		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+			var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 3 | 8);
+			return v.toString(16);
+		});
+	}
+
+	function fileToResizeImage(f, img, originDataURL, dataURLType, srcOrientation, callback, maxW, maxH){
+		var canvas = document.createElement("canvas");
+		canvas.id = "canvas"+parseInt(Math.random()*1000);
+		document.body.appendChild(canvas);
+		var ctx = canvas.getContext("2d");
+		$(canvas).remove();
+		var MAX_WIDTH = maxW;
+		var MAX_HEIGHT = maxW;
+		var imgW = img.width, imgH = img.height;
+		if(!MAX_WIDTH) MAX_WIDTH = imgW;
+		if(!MAX_HEIGHT) MAX_HEIGHT = imgH;
+
+		var width = imgW;
+		var height = imgH;
+		if (width > height) {
+			if (width > MAX_WIDTH) {
+				height *= MAX_WIDTH / width;
+				width = MAX_WIDTH;
+			}
+		} else {
+			if (height > MAX_HEIGHT) {
+				width *= MAX_HEIGHT / height;
+				height = MAX_HEIGHT;
+			}
+		}
+
+		if (4 < srcOrientation && srcOrientation < 9) {
+			canvas.width = height;
+			canvas.height = width;
+		}else{
+			canvas.width = width;
+			canvas.height = height;
+		}
+
+		ctx.save();
+		switch (srcOrientation) {
+			case 2:
+				ctx.translate(width, 0);
+				ctx.scale(-1, 1);
+				break;
+			case 3:
+				ctx.translate(width, height);
+				ctx.rotate(180 / 180 * Math.PI);
+				break;
+			case 4:
+				ctx.translate(0, height);
+				ctx.scale(1, -1);
+				break;
+			case 5:
+				ctx.rotate(90 / 180 * Math.PI);
+				ctx.scale(1, -1);
+				break;
+			case 6:
+				ctx.rotate(90 / 180 * Math.PI);
+				ctx.translate(0, -height);
+				break;
+			case 7:
+				ctx.rotate(270 / 180 * Math.PI);
+				ctx.translate(-width, height);
+				ctx.scale(1, -1);
+				break;
+			case 8:
+				ctx.translate(0, width);
+				ctx.rotate(270 / 180 * Math.PI);
+				break;
+			default: break;
+		}
+
+
+		ctx.drawImage(img,0,0, width, height);
+		ctx.restore();
+
+
+		canvas.toBlob(function(blob) {
+			blob.name = f.name;
+			$(canvas).remove();
+			callback(f, blob);
+		});
+	}
+	
+	function checkPasswordDesc($password, $password1, $passwordDesc, text1, text2, text3) {
+		console.log("password1 keyup");
+		
+		var tempPassword = $password.val();
+		var tempPassword1 = $password1.val();
+		
+		if (tempPassword == tempPassword1) {
+			// $passwordDesc.text('비밀번호가 일치합니다.');
+			$passwordDesc.text(text1);
+		} else {
+			if (!tempPassword) {
+				// $passwordDesc.text('먼저 비밀번호를 입력해 주세요.');
+				$passwordDesc.text(text2);
+				$password1.val('');
+				$password.focus();
+			} else {
+				// $passwordDesc.text('비밀번호가 일치하지 않습니다.');	
+				$passwordDesc.text(text3);
+			}
+			
+		}
+	}
+	
+	
+	function getFirstOfThisMonth(now) {		        
+        var yyyy = now.getFullYear().toString();
+        var mm = (now.getMonth()+1).toString(); // getMonth() is zero-based
+        var dd = (now.getDate().toString()).toString(); // getMonth() is zero-based
+        
+        var from1 = yyyy+(mm[1]?mm:'0'+mm[0])+'01';
+        
+        return from1
+	}
+	
+	function getFirstOfBeforeMonth(now) {		        
+        var yyyy = now.getFullYear().toString();
+        var mm = (now.getMonth()).toString(); // getMonth() is zero-based
+        var dd = (now.getDate().toString()).toString(); // getMonth() is zero-based
+        
+        var from1 = yyyy+(mm[1]?mm:'0'+mm[0])+'01';
+        
+        return from1
+	}
+	
+	function getToday(now1) {
+		var now = new Date();				
+        var yyyy = now.getFullYear().toString();
+        var mm = (now.getMonth()+1).toString(); // getMonth() is zero-based
+        var dd = (now.getDate().toString()).toString(); // getMonth() is zero-based
+                
+		var end1 = yyyy+(mm[1]?mm:'0'+mm[0])+(dd[1]?dd:'0'+dd[0]) + '';
+		
+		return end1
+	}
+	
+	// 앞글자만 대문자
+	function capitalize(str) {
+		return str.charAt(0).toUpperCase() + str.slice(1);
+	}
+	
+	return {
+		aws:aws,
+		setText:setText,		
+		setHtml:setHtml,
+		setVal:setVal,
+		setNumber:setNumber,
+		numberFormat:numberFormat,
+		setDate:setDate,
+		setDate2:setDate2,
+		getDateFormat:getDateFormat,
+		getTimeFormat:getTimeFormat,		
+		isNumber:isNumber,
+		isEmail:isEmail,
+		isMobilePhone:isMobilePhone,
+		isPassword:isPassword,
+		makeCode01:makeCode01,
+		getUUID:getUUID,
+		fileToResizeImage:fileToResizeImage,
+		checkPasswordDesc:checkPasswordDesc,
+		getFirstOfThisMonth:getFirstOfThisMonth,
+		getFirstOfBeforeMonth:getFirstOfBeforeMonth,
+		getToday:getToday,
+		capitalize:capitalize
+	}
+	
+})();
